@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <title>React Click Master Game</title>
+
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        font-family: Arial, sans-serif;
+      }
+
+      .game {
+        position: relative;
+        width: 340px;
+        height: 520px;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        padding-top: 60px;
+      }
+
+      .box {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .box:hover {
+        transform: scale(1.1);
+      }
+
+      .panel {
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .info {
+        font-size: 16px;
+        margin: 4px 0;
+        font-weight: bold;
+      }
+
+      button {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 5px;
+      }
+
+      .start-btn {
+        background: #667eea;
+        color: white;
+      }
+
+      .reset-btn {
+        background: #ff4d4d;
+        color: white;
+        margin-left: 8px;
+      }
+
+      .game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      function ClickBoxGame() {
+        const GAME_WIDTH = 340;
+        const GAME_HEIGHT = 520;
+        const BOX_SIZE = 50;
+
+        const [score, setScore] = useState(0);
+        const [highScore, setHighScore] = useState(0);
+        const [timeLeft, setTimeLeft] = useState(15);
+        const [isPlaying, setIsPlaying] = useState(false);
+        const [position, setPosition] = useState({ left: 120, top: 200 });
+        const [color, setColor] = useState("red");
+
+        useEffect(() => {
+          let timer;
+          if (isPlaying && timeLeft > 0) {
+            timer = setInterval(() => {
+              setTimeLeft((prev) => prev - 1);
+            }, 1000);
+          }
+
+          if (timeLeft === 0 && isPlaying) {
+            setIsPlaying(false);
+            if (score > highScore) {
+              setHighScore(score);
+            }
+          }
+
+          return () => clearInterval(timer);
+        }, [isPlaying, timeLeft]);
+
+        const moveBox = () => {
+          const newLeft = Math.random() * (GAME_WIDTH - BOX_SIZE);
+          const newTop =
+            60 + Math.random() * (GAME_HEIGHT - BOX_SIZE - 60);
+
+          const randomColor =
+            "#" + Math.floor(Math.random() * 16777215).toString(16);
+
+          setPosition({ left: newLeft, top: newTop });
+          setColor(randomColor);
+        };
+
+        const handleClick = () => {
+          if (!isPlaying) return;
+          setScore((prev) => prev + 1);
+          moveBox();
+        };
+
+        const startGame = () => {
+          setScore(0);
+          setTimeLeft(15);
+          setIsPlaying(true);
+          moveBox();
+        };
+
+        const resetGame = () => {
+          setIsPlaying(false);
+          setScore(0);
+          setTimeLeft(15);
+        };
+
+        return (
+          <div className="game">
+            <div className="panel">
+              <div className="info">Score: {score}</div>
+              <div className="info">High Score: {highScore}</div>
+              <div className="info">Time Left: {timeLeft}s</div>
+              <button className="start-btn" onClick={startGame}>
+                Start
+              </button>
+              <button className="reset-btn" onClick={resetGame}>
+                Reset
+              </button>
+            </div>
+
+            {isPlaying && (
+              <div
+                className="box"
+                onClick={handleClick}
+                style={{
+                  left: position.left + "px",
+                  top: position.top + "px",
+                  background: color,
+                }}
+              ></div>
+            )}
+
+            {!isPlaying && timeLeft === 0 && (
+              <div className="game-over">Game Over 🎯</div>
+            )}
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<ClickBoxGame />);
+    </script>
+  </body>
+</html>
